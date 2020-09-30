@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
@@ -73,9 +75,9 @@ class ResultSet extends IteratorIterator implements ResultSetInterface
         $this->queryObject = $query;
         $repo = $this->queryObject->getRepository();
         foreach ($repo->embedded() as $embed) {
-            $this->embeds[$embed->property()] = $embed;
+            $this->embeds[$embed->getProperty()] = $embed;
         }
-        $this->entityClass = $repo->entityClass();
+        $this->entityClass = $repo->getEntityClass();
         $this->repoName = $repo->getRegistryAlias();
         parent::__construct($resultSet);
     }
@@ -108,26 +110,6 @@ class ResultSet extends IteratorIterator implements ResultSetInterface
     public function getSuggests()
     {
         return $this->resultSet->getSuggests();
-    }
-
-    /**
-     * Returns whether facets exist
-     *
-     * @return bool Facet existence
-     */
-    public function hasFacets()
-    {
-        return $this->resultSet->hasFacets();
-    }
-
-    /**
-     * Returns all facets results
-     *
-     * @return array Facet results
-     */
-    public function getFacets()
-    {
-        return $this->resultSet->getFacets();
     }
 
     /**
@@ -217,9 +199,9 @@ class ResultSet extends IteratorIterator implements ResultSetInterface
      *
      * @return int Size of set
      */
-    public function count()
+    public function count(): int
     {
-        return $this->resultSet->count();
+        return (int)$this->resultSet->count();
     }
 
     /**
@@ -246,7 +228,7 @@ class ResultSet extends IteratorIterator implements ResultSetInterface
             'useSetters' => false,
             'markNew' => false,
             'source' => $this->repoName,
-            'result' => $result
+            'result' => $result,
         ];
 
         $data = $result->getData();

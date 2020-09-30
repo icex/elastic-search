@@ -10,8 +10,7 @@
          stopOnError="false"
          stopOnFailure="false"
          stopOnIncomplete="false"
-         stopOnSkipped="false"
-         syntaxCheck="false">
+         stopOnSkipped="false">
 
     <listeners>
         <listener class="\Cake\TestSuite\Fixture\FixtureInjector"
@@ -27,4 +26,10 @@
             <directory>./tests/TestCase/</directory>
         </testsuite>
     </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">src/</directory>
+        </whitelist>
+    </filter>
 </phpunit>

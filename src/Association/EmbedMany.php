@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Cake\ElasticSearch\Association;
 
 /**
@@ -16,7 +18,7 @@ class EmbedMany extends Embedded
      */
     public function hydrate(array $data, $options)
     {
-        $class = $this->entityClass();
+        $class = $this->getEntityClass();
         $out = [];
         foreach ($data as $row) {
             if (is_array($row)) {
@@ -28,7 +30,7 @@ class EmbedMany extends Embedded
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function type()
     {

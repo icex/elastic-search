@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
@@ -20,11 +22,9 @@ use Elastica\Result;
 
 /**
  * Represents a document stored in a Elastic Search Index
- *
  */
 class Document implements EntityInterface
 {
-
     use EntityTrait;
 
     /**
@@ -38,7 +38,7 @@ class Document implements EntityInterface
 
     /**
      * Takes either an array or a Result object form a search and constructs
-     * a document representing an entity in a elastic search type,
+     * a document representing an entity in a elastic search index,
      *
      * @param array|\Elastica\Result $data An array or Result object that
      *  represents an Elasticsearch document
@@ -62,7 +62,7 @@ class Document implements EntityInterface
             'markNew' => null,
             'guard' => false,
             'source' => null,
-            'result' => null
+            'result' => null,
         ];
 
         if (!empty($options['source'])) {
@@ -70,7 +70,7 @@ class Document implements EntityInterface
         }
 
         if ($options['markNew'] !== null) {
-            $this->isNew($options['markNew']);
+            $this->setNew($options['markNew']);
         }
 
         if ($options['result'] !== null) {
@@ -78,7 +78,7 @@ class Document implements EntityInterface
         }
 
         if (!empty($data) && $options['markClean'] && !$options['useSetters']) {
-            $this->_properties = $data;
+            $this->_fields = $data;
 
             return;
         }
@@ -86,7 +86,7 @@ class Document implements EntityInterface
         if (!empty($data)) {
             $this->set($data, [
                 'setter' => $options['useSetters'],
-                'guard' => $options['guard']
+                'guard' => $options['guard'],
             ]);
         }
 

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Cake\ElasticSearch;
 
@@ -7,7 +8,6 @@ use Elastica\Query\AbstractQuery;
 
 class QueryBuilder
 {
-
     /**
      * Returns a Range query object setup to query documents having the field between
      * a `from` and a `to` value
@@ -22,7 +22,7 @@ class QueryBuilder
     {
         return $this->range($field, [
             'gte' => $from,
-            'lte' => $to
+            'lte' => $to,
         ]);
     }
 
@@ -312,7 +312,6 @@ class QueryBuilder
      *    $builder->nested('comments', $builder->term('author', 'mark'));
      * }}}
      *
-     *
      * @param string $path A dot separated string denoting the path to the property to query.
      * @param \Elastica\Query\AbstractQuery $query The query conditions.
      * @return \Elastica\Query\Nested
@@ -350,12 +349,12 @@ class QueryBuilder
      * @param string $field The field to query by.
      * @param string $prefix The prefix to check for.
      * @param float $boost The optional boost
-     * @return Elastica\Query\Prefix
+     * @return \Elastica\Query\Prefix
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-prefix-query.html
      */
     public function prefix($field, $prefix, $boost = 1.0)
     {
-        $prefixQuery = new Elastica\Query\Prefix;
+        $prefixQuery = new Elastica\Query\Prefix();
         $prefixQuery->setPrefix($field, $prefix, $boost);
 
         return $prefixQuery;
@@ -497,6 +496,24 @@ class QueryBuilder
     }
 
     /**
+     * Returns a Type query object that query documents matching the provided document/mapping type.
+     *
+     * ### Example:
+     *
+     * {{{
+     *  $builder->type('products');
+     * }}}
+     *
+     * @param string $type The type name
+     * @return \Elastica\Query\Type
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-type-query.html
+     */
+    public function type($type)
+    {
+        return new Elastica\Query\Type($type);
+    }
+
+    /**
      * Combines all the passed arguments in a single bool query
      * using the "must" clause.
      *
@@ -509,13 +526,11 @@ class QueryBuilder
      *  );
      * }}}
      *
+     * @param \Elastica\Query\AbstractQuery ...$queries Queries to compare.
      * @return \Elastica\Query\BoolQuery
      */
-    // @codingStandardsIgnoreStart
-    public function and_()
+    public function and(...$queries)
     {
-        // @codingStandardsIgnoreEnd
-        $queries = func_get_args();
         $bool = $this->bool();
 
         foreach ($queries as $query) {
@@ -537,13 +552,11 @@ class QueryBuilder
      *  );
      * }}}
      *
+     * @param \Elastica\Query\AbstractQuery ...$queries Queries to compare.
      * @return \Elastica\Query\BoolQuery
      */
-    // @codingStandardsIgnoreStart
-    public function or_()
+    public function or(...$queries)
     {
-        // @codingStandardsIgnoreEnd
-        $queries = func_get_args();
         $bool = $this->bool();
 
         foreach ($queries as $query) {
@@ -553,20 +566,50 @@ class QueryBuilder
         return $bool;
     }
 
+    // @codingStandardsIgnoreStart
     /**
-     * Helps calling the `and()` and `or()` methods transparently.
+     * Combines all the passed arguments in a single bool query
+     * using the "must" clause.
      *
-     * @param string $method The method name.
-     * @param array $args The argumemts to pass to the method.
-     * @return \Elastica\Query\AbstractQuery
+     * ### Example:
+     *
+     * {{{
+     *  $bool = $builder->and(
+     *     $builder->terms('tags', ['cool', 'stuff']),
+     *     $builder->exists('comments')
+     *  );
+     * }}}
+     *
+     * @param \Elastica\Query\AbstractQuery ...$queries Queries to compare.
+     * @return \Elastica\Query\BoolQuery
+     * @deprecated 3.0.1 Use `and()` instead.
      */
-    public function __call($method, $args)
+    public function and_(...$queries)
     {
-        if (in_array($method, ['and', 'or'])) {
-            return call_user_func_array([$this, $method . '_'], $args);
-        }
-        throw new \BadMethodCallException('Cannot build query ' . $method);
+        return $this->and(...$queries);
     }
+
+    /**
+     * Combines all the passed arguments in a single BoolQuery query using should clause.
+     *
+     * ### Example:
+     *
+     * {{{
+     *  $bool = $builder->or(
+     *     $builder->not($builder->exists('tags')),
+     *     $builder->exists('comments')
+     *  );
+     * }}}
+     *
+     * @param \Elastica\Query\AbstractQuery ...$queries Queries to compare.
+     * @return \Elastica\Query\BoolQuery
+     * @deprecated 3.0.1 Use `or()` instead.
+     */
+    public function or_(...$queries)
+    {
+        return $this->or(...$queries);
+    }
+    // @codingStandardsIgnoreEnd
 
     /**
      * Converts an array into a single array of query objects
@@ -663,29 +706,30 @@ class QueryBuilder
         $result = [];
         foreach ($conditions as $k => $c) {
             $numericKey = is_numeric($k);
-            $operator = strtolower($k);
 
             if ($numericKey) {
                 $c = $this->parse($c);
                 if (is_array($c)) {
-                    $c = $this->__call('and', $c);
+                    $c = $this->and(...$c);
                 }
                 $result[] = $c;
                 continue;
             }
 
+            $operator = strtolower($k);
+
             if ($operator === 'and') {
-                $result[] = $this->__call('and', $this->parse($c));
+                $result[] = $this->and(...$this->parse($c));
                 continue;
             }
 
             if ($operator === 'or') {
-                $result[] = $this->__call('or', $this->parse($c));
+                $result[] = $this->or(...$this->parse($c));
                 continue;
             }
 
             if ($operator === 'not') {
-                $result[] = $this->not($this->__call('and', $this->parse($c)));
+                $result[] = $this->not($this->and(...$this->parse($c)));
                 continue;
             }
 
@@ -715,7 +759,7 @@ class QueryBuilder
         $parts = explode(' ', trim($field), 2);
 
         if (count($parts) > 1) {
-            list($field, $operator) = $parts;
+            [$field, $operator] = $parts;
         }
 
         $operator = strtolower(trim($operator));

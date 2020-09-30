@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
@@ -12,7 +14,7 @@
  * @since     0.0.1
  * @license   http://www.opensource.org/licenses/mit-license.php MIT License
  */
-namespace Cake\ElasticSearch\Test;
+namespace Cake\ElasticSearch\Test\TestCase;
 
 use Cake\Core\Configure;
 use Cake\Datasource\ConnectionManager;
@@ -26,13 +28,13 @@ class EmbeddedDocumentTest extends TestCase
 {
     public $fixtures = ['plugin.Cake/ElasticSearch.Profiles'];
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->index = new Index(
             [
             'name' => 'profiles',
-            'connection' => ConnectionManager::get('test')
+            'connection' => ConnectionManager::get('test'),
             ]
         );
     }
@@ -48,9 +50,9 @@ class EmbeddedDocumentTest extends TestCase
         $assocs = $this->index->embedded();
         $this->assertCount(1, $assocs);
         $this->assertInstanceOf('Cake\ElasticSearch\Association\EmbedOne', $assocs[0]);
-        $this->assertEquals('\Cake\ElasticSearch\Document', $assocs[0]->entityClass());
-        $this->assertEquals('\Cake\ElasticSearch\Index', $assocs[0]->indexClass());
-        $this->assertEquals('address', $assocs[0]->property());
+        $this->assertEquals('TestApp\Model\Document\Address', $assocs[0]->getEntityClass());
+        $this->assertEquals('Cake\ElasticSearch\Index', $assocs[0]->getIndexClass());
+        $this->assertEquals('address', $assocs[0]->getProperty());
     }
 
     /**
@@ -90,10 +92,8 @@ class EmbeddedDocumentTest extends TestCase
      * Test fetching with EmbedOne documents.
      *
      * @dataProvider embedTypeProvider
-     *
      * @param array  $options  Options to pass to embed
      * @param string $expected Expected type
-     *
      * @return void
      */
     public function testGetWithEmbedOneType($options, $expected)
@@ -129,9 +129,9 @@ class EmbeddedDocumentTest extends TestCase
         $assocs = $this->index->embedded();
         $this->assertCount(1, $assocs);
         $this->assertInstanceOf('Cake\ElasticSearch\Association\EmbedMany', $assocs[0]);
-        $this->assertEquals('\Cake\ElasticSearch\Document', $assocs[0]->entityClass());
-        $this->assertEquals('\Cake\ElasticSearch\Index', $assocs[0]->indexClass());
-        $this->assertEquals('address', $assocs[0]->property());
+        $this->assertEquals('TestApp\Model\Document\Address', $assocs[0]->getEntityClass());
+        $this->assertEquals('Cake\ElasticSearch\Index', $assocs[0]->getIndexClass());
+        $this->assertEquals('address', $assocs[0]->getProperty());
     }
 
     /**
@@ -143,7 +143,7 @@ class EmbeddedDocumentTest extends TestCase
     {
         $this->index->embedMany('Address');
         $result = $this->index->get(3);
-        $this->assertInternalType('array', $result->address);
+        $this->assertIsArray($result->address);
         $this->assertInstanceOf('Cake\ElasticSearch\Document', $result->address[0]);
         $this->assertInstanceOf('Cake\ElasticSearch\Document', $result->address[1]);
     }
@@ -152,10 +152,8 @@ class EmbeddedDocumentTest extends TestCase
      * Test fetching with EmbedMany documents.
      *
      * @dataProvider embedTypeProvider
-     *
      * @param array  $options  Options to pass to embed
      * @param string $expected Expected type
-     *
      * @return void
      */
     public function testGetWithEmbedManyType($options, $expected)
@@ -163,7 +161,7 @@ class EmbeddedDocumentTest extends TestCase
         Configure::write('App.namespace', 'TestApp');
         $this->index->embedMany('Address', $options);
         $result = $this->index->get(3);
-        $this->assertInternalType('array', $result->address);
+        $this->assertIsArray($result->address);
         $this->assertInstanceOf($expected, $result->address[0]);
         $this->assertInstanceOf($expected, $result->address[1]);
     }
@@ -180,8 +178,23 @@ class EmbeddedDocumentTest extends TestCase
         $rows = $result->toArray();
 
         $this->assertCount(1, $rows);
-        $this->assertInternalType('array', $rows[0]->address);
+        $this->assertIsArray($rows[0]->address);
         $this->assertInstanceOf('Cake\ElasticSearch\Document', $rows[0]->address[0]);
         $this->assertInstanceOf('Cake\ElasticSearch\Document', $rows[0]->address[1]);
+    }
+
+    /**
+     * Test embed a missing document, so a generic one
+     * is used.
+     *
+     * @return void
+     */
+    public function testEmbededMissingDocument()
+    {
+        $this->index->embedOne('InvalidDocumentName');
+        $assocs = $this->index->embedded();
+        $this->assertCount(1, $assocs);
+        $this->assertEquals('Cake\ElasticSearch\Document', $assocs[0]->getEntityClass());
+        $this->assertEquals('invalid_document_name', $assocs[0]->getProperty());
     }
 }

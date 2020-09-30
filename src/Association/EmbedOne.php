@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace Cake\ElasticSearch\Association;
 
 /**
@@ -16,13 +18,13 @@ class EmbedOne extends Embedded
      */
     public function hydrate(array $data, $options)
     {
-        $class = $this->entityClass();
+        $class = $this->getEntityClass();
 
         return new $class($data, $options);
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function type()
     {

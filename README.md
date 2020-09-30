@@ -1,9 +1,12 @@
 # Elasticsearch Datasource for CakePHP
 
-[![Build Status](https://travis-ci.org/cakephp/elastic-search.svg?branch=master)](https://travis-ci.org/cakephp/elastic-search)
-[![License](https://poser.pugx.org/cakephp/elastic-search/license.svg)](https://packagist.org/packages/cakephp/elastic-search)
+[![Build Status](https://img.shields.io/travis/com/cakephp/elastic-search?style=flat-square)](https://travis-ci.com/cakephp/elastic-search)
+[![Latest Stable Version](https://img.shields.io/github/v/release/cakephp/elastic-search?sort=semver&style=flat-square)](https://packagist.org/packages/cakephp/elastic-search)
+[![Total Downloads](https://img.shields.io/packagist/dt/cakephp/elastic-search?style=flat-square)](https://packagist.org/packages/cakephp/elastic-search/stats)
+[![Code Coverage](https://img.shields.io/coveralls/cakephp/elastic-search/master.svg?style=flat-square)](https://coveralls.io/r/cakephp/elastic-search?branch=master)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
 
-Use [Elastic Search](https://www.elastic.co/) as an alternative ORM backend in CakePHP 3.6+.
+Use [Elastic Search](https://www.elastic.co/) as an alternative ORM backend in CakePHP 4.0+.
 
 You can [find the documentation for the plugin in the Cake Book](http://book.cakephp.org/elasticsearch).
 
@@ -14,12 +17,20 @@ You can install Elasticsearch into your project using
 following to your `composer.json` file:
 
     "require": {
-        "cakephp/elastic-search": "^2.0"
+        "cakephp/elastic-search": "^3.0"
     }
 
 And run `php composer.phar update`
 
-Please use the 1.x branch if you are looking for a version of this plugin that is compatible with Cake versions prior to 3.6 and ES versions before 6.x (2.x and 5.x)
+### Versions Table
+
+| Cake\ElasticSearch | CakePHP | ElasticSearch |
+| --- | --- | --- |
+| [1.x](https://github.com/cakephp/elastic-search/tree/1.0) | 3.0 - 3.5 | 2.x - 5.x |
+| [2.x](https://github.com/cakephp/elastic-search/tree/2.x) | 3.6+ | 6.x |
+| [3.x](https://github.com/cakephp/elastic-search/tree/master) | 4.0+ | 6.x |
+
+You are seeing the 3.x version.
 
 ## Connecting the Plugin to your Application
 
@@ -112,7 +123,13 @@ In the above example, if you have defined a class as `CommentsIndex` and the `In
 
 ## The Index class
 
-You must create your own `Index` class so it will allow you to define the name of internal _index_ for Elasticsearch, and it mapping type and define any entity properties you could need like virtual propierties. As you have to [use only one mapping type for each _index_](https://www.elastic.co/guide/en/elasticsearch/reference/master/removal-of-types.html), you can use the same name for both (this is the default behavior when _type_ is undefined). Index types will be removed from ES 7 and up.
+You must create your own `Index` class to define the name of internal _index_
+for Elasticsearch, as well as to define the mapping type and define any entity
+properties you need like virtual properties. As you have to
+[use only one mapping type for each _index_](https://www.elastic.co/guide/en/elasticsearch/reference/master/removal-of-types.html),
+you can use the same name for both (the default behavior when _type_ is
+undefined is use singular version of _index_ name). Index types were removed
+in ElasticSearch 7.
 
 ```php
 use Cake\ElasticSearch\Index;

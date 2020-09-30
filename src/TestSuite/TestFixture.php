@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
@@ -31,7 +33,6 @@ use Elastica\Type\Mapping as ElasticaMapping;
  */
 class TestFixture implements FixtureInterface
 {
-
     /**
      * Full Table Name
      *
@@ -118,12 +119,12 @@ class TestFixture implements FixtureInterface
      * Create index and mapping for the type.
      *
      * @param \Cake\Datasource\ConnectionInterface $db The Elasticsearch connection
-     * @return void
+     * @return bool
      */
-    public function create(ConnectionInterface $db)
+    public function create(ConnectionInterface $db): bool
     {
         if (empty($this->schema)) {
-            return;
+            return false;
         }
 
         $esIndex = $db->getIndex($this->getIndex()->getName());
@@ -186,44 +187,50 @@ class TestFixture implements FixtureInterface
      * Drops the index
      *
      * @param \Cake\Datasource\ConnectionInterface $db The Elasticsearch connection
-     * @return void
+     * @return bool
      */
-    public function drop(ConnectionInterface $db)
+    public function drop(ConnectionInterface $db): bool
     {
         $esIndex = $db->getIndex($this->getIndex()->getName());
 
         if ($esIndex->exists()) {
             $esIndex->delete();
+
+            return true;
         }
+
+        return false;
     }
 
     /**
      * Truncate the fixture type.
      *
      * @param \Cake\Datasource\ConnectionInterface $db The Elasticsearch connection
-     * @return void
+     * @return bool
      */
-    public function truncate(ConnectionInterface $db)
+    public function truncate(ConnectionInterface $db): bool
     {
         $query = new MatchAll();
         $esIndex = $db->getIndex($this->getIndex()->getName());
         $type = $esIndex->getType($this->getIndex()->getType());
-        $type->deleteByQuery($query);
+        $type->deleteByQuery($quergit y);
         $esIndex->refresh();
+
+        return true;
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
-    public function connection()
+    public function connection(): string
     {
         return $this->connection;
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
-    public function sourceName()
+    public function sourceName(): string
     {
         return $this->table;
     }

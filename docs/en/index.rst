@@ -10,17 +10,15 @@ Installation
 ============
 
 To install the ElasticSearch plugin, you can use ``composer``. From your
-application's ROOT directory (where composer.json file is located) run the
+application's ROOT directory (where ``composer.json`` file is located) run the
 following::
 
-    php composer.phar require cakephp/elastic-search "@stable"
+    php composer.phar require cakephp/elastic-search "^3.0"
 
 You will need to add the following line to your application's
 **src/Application.php** file::
 
-    $this->addPlugin('Cake/ElasticSearch', ['bootstrap' => true]);
-
-    // Prior to 3.6.0 you need to use Plugin::load()
+    $this->addPlugin('Cake/ElasticSearch');
 
 Additionally, you will need to configure the 'elastic' datasource connection in
 your **config/app.php** file. An example configuration would be::
@@ -37,29 +35,41 @@ your **config/app.php** file. An example configuration would be::
         ],
     ]
 
+If your endpoint requires https, use::
+
+    'port' => 443,
+    'transport' => 'https'
+
+or you might get a 400 response back from the elasticsearch server.
+
 Overview
 ========
 
 The ElasticSearch plugin makes it easier to interact with an elasticsearch index
 and provides an interface similar to the :doc:`/orm`. To get started you should
-create a ``Type`` object. ``Type`` objects are the "Repository" or table-like
+create an ``Index`` object. ``Index`` objects are the "Repository" or table-like
 class in elasticsearch::
 
-    // in src/Model/Type/ArticlesType.php
-    namespace App\Model\Type;
+    // in src/Model/Type/ArticlesIndex.php
+    namespace App\Model\Index;
 
-    use Cake\ElasticSearch\Type;
+    use Cake\ElasticSearch\Index;
 
-    class ArticlesType extends Type
+    class ArticlesIndex extends Index
     {
     }
 
-You can then use your type class in your controllers::
+Index objects will assume that the type mapping name for your index is the
+singular version of the index name. In our example the type mapping would be
+``article``. If you need to change the type mapping name use the ``setType()``
+method.
+
+You can then use your index class in your controllers::
 
     public function beforeFilter(Event $event)
     {
         parent::beforeFilter($event);
-        // Load the Type using the 'Elastic' provider.
+        // Load the Index using the 'Elastic' provider.
         $this->loadModel('Articles', 'Elastic');
     }
 
@@ -128,7 +138,7 @@ queries::
         echo $article->title;
     }
 
-You can use the ``FilterBuilder`` to add filtering conditions::
+You can use the ``QueryBuilder`` to add filtering conditions::
 
     $query->where(function ($builder) {
         return $builder->and(
@@ -137,8 +147,8 @@ You can use the ``FilterBuilder`` to add filtering conditions::
         );
     });
 
-The `FilterBuilder source
-<https://github.com/cakephp/elastic-search/blob/master/src/FilterBuilder.php>`_
+The `QueryBuilder source
+<https://github.com/cakephp/elastic-search/blob/master/src/QueryBuilder.php>`_
 has the complete list of methods with examples for many commonly used methods.
 
 Validating Data & Using Application Rules
@@ -215,12 +225,12 @@ the documents within a parent document. For example, you may want the comments
 embedded in an article to have specific application specific methods. You can
 use ``embedOne`` and ``embedMany`` to define embedded documents::
 
-    // in src/Model/Type/ArticlesType.php
-    namespace App\Model\Type;
+    // in src/Model/Index/ArticlesIndex.php
+    namespace App\Model\Index;
 
-    use Cake\ElasticSearch\Type;
+    use Cake\ElasticSearch\Index;
 
-    class ArticlesType extends Type
+    class ArticlesType extends Index
     {
         public function initialize()
         {
@@ -247,30 +257,30 @@ will return objects with the correct embedded document classes::
     // Array of App\Model\Document\Comment instances
     $article->comments;
 
-Getting Type Instances
+Getting Index Instances
 ======================
 
 Like the ORM, the ElasticSearch plugin provides a factory/registry for getting
-``Type`` instances::
+``Index`` instances::
 
-    use Cake\ElasticSearch\TypeRegistry;
+    use Cake\ElasticSearch\IndexRegistry;
 
-    $articles = TypeRegistry::get('Articles');
+    $articles = IndexRegistry::get('Articles');
 
 Flushing the Registry
 ---------------------
 
 During test cases you may want to flush the registry. Doing so is often useful
-when you are using mock objects, or modifying a type's dependencies::
+when you are using mock objects, or modifying a index's dependencies::
 
-    TypeRegistry::flush();
+    IndexRegistry::flush();
 
 Test Fixtures
 =============
 
 The ElasticSearch plugin provides seamless test suite integration. Just like
 database fixtures, you can create test fixtures for elasticsearch. We could
-define a test fixture for our Articles type with the following::
+define a test fixture for our Articles index with the following::
 
     namespace App\Test\Fixture;
 
@@ -282,7 +292,7 @@ define a test fixture for our Articles type with the following::
     class ArticlesFixture extends TestFixture
     {
         /**
-         * The table/type for this fixture.
+         * The table/index for this fixture.
          *
          * @var string
          */
@@ -323,4 +333,3 @@ fixtures are created you can use them in your test cases by including them in
 your test's ``fixtures`` properties::
 
     public $fixtures = ['app.Articles'];
-

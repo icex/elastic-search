@@ -6,3 +6,4 @@ Contents
     :caption: CakePHP ElasticSearch
 
     /index
+    /3-0-upgrade-guide
