@@ -14,6 +14,7 @@ declare(strict_types=1);
  * @since         0.0.1
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
+
 namespace Cake\ElasticSearch\Datasource\Log;
 
 use Cake\Database\Log\LoggedQuery;
@@ -129,7 +130,7 @@ class ElasticLogger extends AbstractLogger
                 $took = $context['response']['took'];
             }
             if (isset($context['response']['hits']['total'])) {
-                $numRows = $context['response']['hits']['total'];
+                $numRows = $context['response']['hits']['total']['value'];
             }
             $message = new LoggedQuery();
             $message->query = $logData;
